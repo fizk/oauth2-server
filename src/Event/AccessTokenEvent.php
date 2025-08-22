@@ -10,16 +10,16 @@
 
 declare(strict_types=1);
 
-namespace League\OAuth2\Server\EventEmitting;
+namespace League\OAuth2\Server\Event;
 
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class RequestAccessTokenEvent extends RequestEvent
+class AccessTokenEvent extends RequestEvent
 {
-    public function __construct(string $name, ServerRequestInterface $request, private AccessTokenEntityInterface $accessToken)
+    public function __construct(ServerRequestInterface $request, private AccessTokenEntityInterface $accessToken)
     {
-        parent::__construct($name, $request);
+        parent::__construct($request);
     }
 
     /**

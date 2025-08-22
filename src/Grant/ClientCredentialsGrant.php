@@ -15,9 +15,9 @@ declare(strict_types=1);
 namespace League\OAuth2\Server\Grant;
 
 use DateInterval;
+use League\OAuth2\Server\Event\AccessTokenEvent;
+use League\OAuth2\Server\Event\ClientAuthenticationFailedEvent;
 use League\OAuth2\Server\Exception\OAuthServerException;
-use League\OAuth2\Server\EventEmitting\RequestAccessTokenEvent;
-use League\OAuth2\Server\EventEmitting\RequestEvent;
 use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -37,7 +37,7 @@ class ClientCredentialsGrant extends AbstractGrant
         $client = $this->validateClient($request);
 
         if (!$client->isConfidential()) {
-            $this->getEventDispatcher()->dispatch(new RequestEvent(RequestEvent::CLIENT_AUTHENTICATION_FAILED, $request));
+            $this->getEventDispatcher()->dispatch(new ClientAuthenticationFailedEvent($request));
 
             throw OAuthServerException::invalidClient($request);
         }
@@ -51,7 +51,7 @@ class ClientCredentialsGrant extends AbstractGrant
         $accessToken = $this->issueAccessToken($accessTokenTTL, $client, null, $finalizedScopes);
 
         // Send event to emitter
-        $this->getEventDispatcher()->dispatch(new RequestAccessTokenEvent(RequestEvent::ACCESS_TOKEN_ISSUED, $request, $accessToken));
+        $this->getEventDispatcher()->dispatch(new AccessTokenEvent($request, $accessToken));
 
         // Inject access token into response type
         $responseType->setAccessToken($accessToken);

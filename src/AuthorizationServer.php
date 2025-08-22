@@ -14,8 +14,8 @@ namespace League\OAuth2\Server;
 
 use DateInterval;
 use Defuse\Crypto\Key;
-use League\OAuth2\Server\EventEmitting\EventDispatcherAwareInterface;
-use League\OAuth2\Server\EventEmitting\EventDispatcherAwareTrait;
+use League\OAuth2\Server\Event\EventDispatcherAwareInterface;
+use League\OAuth2\Server\Event\EventDispatcherAwareTrait;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\Grant\GrantTypeInterface;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
@@ -95,7 +95,7 @@ class AuthorizationServer implements EventDispatcherAwareInterface
         $grantType->setScopeRepository($this->scopeRepository);
         $grantType->setDefaultScope($this->defaultScope);
         $grantType->setPrivateKey($this->privateKey);
-        $grantType->setEventDispatcher($this->getEventDispatcher());
+        $grantType->setEventDispatcher ($this->getEventDispatcher());
         $grantType->setEncryptionKey($this->encryptionKey);
         $grantType->revokeRefreshTokens($this->revokeRefreshTokens);
 

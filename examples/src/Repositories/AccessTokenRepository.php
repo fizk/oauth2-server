@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace OAuth2ServerExamples\Repositories;
 
+use JsonSerializable;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
@@ -46,7 +47,12 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
     /**
      * {@inheritdoc}
      */
-    public function getNewToken(ClientEntityInterface $clientEntity, array $scopes, $userIdentifier = null): AccessTokenEntityInterface
+    public function getNewToken(
+        ClientEntityInterface $clientEntity,
+        array $scopes,
+        string|null $userIdentifier = null,
+        ?JsonSerializable $claims = null
+    ): AccessTokenEntityInterface
     {
         $accessToken = new AccessTokenEntity();
 

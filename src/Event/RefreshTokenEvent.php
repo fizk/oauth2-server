@@ -10,16 +10,16 @@
 
 declare(strict_types=1);
 
-namespace League\OAuth2\Server\EventEmitting;
+namespace League\OAuth2\Server\Event;
 
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class RequestRefreshTokenEvent extends RequestEvent
+class RefreshTokenEvent extends RequestEvent
 {
-    public function __construct(string $name, ServerRequestInterface $request, private RefreshTokenEntityInterface $refreshToken)
+    public function __construct(ServerRequestInterface $request, private RefreshTokenEntityInterface $refreshToken)
     {
-        parent::__construct($name, $request);
+        parent::__construct($request);
     }
 
     /**

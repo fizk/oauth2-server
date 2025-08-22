@@ -7,12 +7,11 @@ namespace LeagueTests\Grant;
 use DateInterval;
 use Laminas\Diactoros\ServerRequest;
 use League\OAuth2\Server\CryptKey;
+use League\OAuth2\Server\Event\AccessTokenEvent;
 use League\OAuth2\Server\Grant\ClientCredentialsGrant;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
-use League\OAuth2\Server\EventEmitting\RequestAccessTokenEvent;
-use League\OAuth2\Server\EventEmitting\RequestEvent;
 use LeagueTests\Stubs\AccessTokenEntity;
 use LeagueTests\Stubs\ClientEntity;
 use LeagueTests\Stubs\EventDispatcherStub;
@@ -34,9 +33,9 @@ class ClientCredentialsGrantTest extends TestCase
     {
         $eventDispatcher = new EventDispatcherStub();
         $eventDispatcher->subscribeTo(
-            RequestEvent::ACCESS_TOKEN_ISSUED,
+            AccessTokenEvent::class,
             function ($event) use (&$accessTokenEventEmitted): void {
-                self::assertInstanceOf(RequestAccessTokenEvent::class, $event);
+                self::assertInstanceOf(AccessTokenEvent::class, $event);
 
                 $accessTokenEventEmitted = true;
             }

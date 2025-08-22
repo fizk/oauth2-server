@@ -1,6 +1,6 @@
 <?php
 
-namespace League\OAuth2\Server\EventEmitting;
+namespace League\OAuth2\Server\Event;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 

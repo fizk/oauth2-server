@@ -9,13 +9,13 @@ class EventDispatcherStub implements EventDispatcherInterface {
     
     public function dispatch(object $event)
     {
-        if(array_key_exists($event->eventName(), $this->events)) {
-            $this->events[$event->eventName()]($event);
+        if(array_key_exists(get_class($event), $this->events)) {
+            $this->events[get_class($event)]($event);
         }
     }
 
-    public function subscribeTo($name, $callback)
+    public function subscribeTo(string $event, callable $callback)
     {
-        $this->events[$name] = $callback;
+        $this->events[$event] = $callback;
     }
 }

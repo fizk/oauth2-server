@@ -9,6 +9,8 @@ use Laminas\Diactoros\Response;
 use Laminas\Diactoros\ServerRequest;
 use League\OAuth2\Server\CryptKey;
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
+use League\OAuth2\Server\Event\AccessTokenEvent;
+use League\OAuth2\Server\Event\RefreshTokenEvent;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use League\OAuth2\Server\Grant\AuthCodeGrant;
@@ -17,9 +19,6 @@ use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
-use League\OAuth2\Server\EventEmitting\RequestAccessTokenEvent;
-use League\OAuth2\Server\EventEmitting\RequestEvent;
-use League\OAuth2\Server\EventEmitting\RequestRefreshTokenEvent;
 use League\OAuth2\Server\RequestTypes\AuthorizationRequest;
 use League\OAuth2\Server\ResponseTypes\RedirectResponse;
 use LeagueTests\Stubs\AccessTokenEntity;
@@ -606,17 +605,17 @@ class AuthCodeGrantTest extends TestCase
     {
         $eventDispatch = new EventDispatcherStub();
         $eventDispatch->subscribeTo(
-            RequestEvent::ACCESS_TOKEN_ISSUED,
+            AccessTokenEvent::class,
             function ($event) use (&$accessTokenEventEmitted): void {
-                self::assertInstanceOf(RequestAccessTokenEvent::class, $event);
+                self::assertInstanceOf(AccessTokenEvent::class, $event);
 
                 $accessTokenEventEmitted = true;
             }
         );
         $eventDispatch->subscribeTo(
-            RequestEvent::REFRESH_TOKEN_ISSUED,
+            RefreshTokenEvent::class,
             function ($event) use (&$refreshTokenEventEmitted): void {
-                self::assertInstanceOf(RequestRefreshTokenEvent::class, $event);
+                self::assertInstanceOf(RefreshTokenEvent::class, $event);
 
                 $refreshTokenEventEmitted = true;
             }
