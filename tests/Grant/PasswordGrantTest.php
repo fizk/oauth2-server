@@ -15,11 +15,12 @@ use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use League\OAuth2\Server\Repositories\UserRepositoryInterface;
-use League\OAuth2\Server\RequestAccessTokenEvent;
-use League\OAuth2\Server\RequestEvent;
-use League\OAuth2\Server\RequestRefreshTokenEvent;
+use League\OAuth2\Server\EventEmitting\RequestAccessTokenEvent;
+use League\OAuth2\Server\EventEmitting\RequestEvent;
+use League\OAuth2\Server\EventEmitting\RequestRefreshTokenEvent;
 use LeagueTests\Stubs\AccessTokenEntity;
 use LeagueTests\Stubs\ClientEntity;
+use LeagueTests\Stubs\EventDispatcherStub;
 use LeagueTests\Stubs\RefreshTokenEntity;
 use LeagueTests\Stubs\ScopeEntity;
 use LeagueTests\Stubs\StubResponseType;
@@ -41,6 +42,25 @@ class PasswordGrantTest extends TestCase
 
     public function testRespondToRequest(): void
     {
+        $eventDispatcher = new EventDispatcherStub();
+        $eventDispatcher->subscribeTo(
+            RequestEvent::ACCESS_TOKEN_ISSUED,
+            function ($event) use (&$accessTokenEventEmitted): void {
+                self::assertInstanceOf(RequestAccessTokenEvent::class, $event);
+
+                $accessTokenEventEmitted = true;
+            }
+        );
+
+        $eventDispatcher->subscribeTo(
+            RequestEvent::REFRESH_TOKEN_ISSUED,
+            function ($event) use (&$refreshTokenEventEmitted): void {
+                self::assertInstanceOf(RequestRefreshTokenEvent::class, $event);
+
+                $refreshTokenEventEmitted = true;
+            }
+        );
+
         $client = new ClientEntity();
         $client->setRedirectUri('http://foo/bar');
 
@@ -73,27 +93,10 @@ class PasswordGrantTest extends TestCase
         $grant->setScopeRepository($scopeRepositoryMock);
         $grant->setDefaultScope(self::DEFAULT_SCOPE);
         $grant->setPrivateKey(new CryptKey('file://' . __DIR__ . '/../Stubs/private.key'));
+        $grant->setEventDispatcher($eventDispatcher);
 
         $accessTokenEventEmitted = false;
         $refreshTokenEventEmitted = false;
-
-        $grant->getListenerRegistry()->subscribeTo(
-            RequestEvent::ACCESS_TOKEN_ISSUED,
-            function ($event) use (&$accessTokenEventEmitted): void {
-                self::assertInstanceOf(RequestAccessTokenEvent::class, $event);
-
-                $accessTokenEventEmitted = true;
-            }
-        );
-
-        $grant->getListenerRegistry()->subscribeTo(
-            RequestEvent::REFRESH_TOKEN_ISSUED,
-            function ($event) use (&$refreshTokenEventEmitted): void {
-                self::assertInstanceOf(RequestRefreshTokenEvent::class, $event);
-
-                $refreshTokenEventEmitted = true;
-            }
-        );
 
         $serverRequest = (new ServerRequest())->withParsedBody([
             'client_id'     => 'foo',

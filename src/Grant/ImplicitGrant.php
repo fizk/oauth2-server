@@ -16,7 +16,7 @@ use DateInterval;
 use League\OAuth2\Server\Entities\UserEntityInterface;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
-use League\OAuth2\Server\RequestEvent;
+use League\OAuth2\Server\EventEmitting\RequestEvent;
 use League\OAuth2\Server\RequestTypes\AuthorizationRequestInterface;
 use League\OAuth2\Server\ResponseTypes\RedirectResponse;
 use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
@@ -114,7 +114,7 @@ class ImplicitGrant extends AbstractAuthorizeGrant
             $client->getRedirectUri() === '' ||
             (is_array($client->getRedirectUri()) && count($client->getRedirectUri()) !== 1)
         ) {
-            $this->getEmitter()->emit(new RequestEvent(RequestEvent::CLIENT_AUTHENTICATION_FAILED, $request));
+            $this->getEventDispatcher()->dispatch(new RequestEvent(RequestEvent::CLIENT_AUTHENTICATION_FAILED, $request));
             throw OAuthServerException::invalidClient($request);
         }
 
@@ -173,7 +173,7 @@ class ImplicitGrant extends AbstractAuthorizeGrant
             );
 
             // TODO: next major release: this method needs `ServerRequestInterface` as an argument
-            // $this->getEmitter()->emit(new RequestAccessTokenEvent(RequestEvent::ACCESS_TOKEN_ISSUED, $request, $accessToken));
+            // $this->getEventDispatcher()->dispatch(new RequestAccessTokenEvent(RequestEvent::ACCESS_TOKEN_ISSUED, $request, $accessToken));
 
             $response = new RedirectResponse();
             $response->setRedirectUri(

@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace League\OAuth2\Server\Repositories;
 
+use JsonSerializable;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\ScopeEntityInterface;
@@ -30,7 +31,8 @@ interface AccessTokenRepositoryInterface extends RepositoryInterface
     public function getNewToken(
         ClientEntityInterface $clientEntity,
         array $scopes,
-        string|null $userIdentifier = null
+        string|null $userIdentifier = null,
+        ?JsonSerializable $claims = null
     ): AccessTokenEntityInterface;
 
     /**

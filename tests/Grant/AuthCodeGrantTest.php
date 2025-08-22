@@ -17,21 +17,23 @@ use League\OAuth2\Server\Repositories\AuthCodeRepositoryInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
-use League\OAuth2\Server\RequestAccessTokenEvent;
-use League\OAuth2\Server\RequestEvent;
-use League\OAuth2\Server\RequestRefreshTokenEvent;
+use League\OAuth2\Server\EventEmitting\RequestAccessTokenEvent;
+use League\OAuth2\Server\EventEmitting\RequestEvent;
+use League\OAuth2\Server\EventEmitting\RequestRefreshTokenEvent;
 use League\OAuth2\Server\RequestTypes\AuthorizationRequest;
 use League\OAuth2\Server\ResponseTypes\RedirectResponse;
 use LeagueTests\Stubs\AccessTokenEntity;
 use LeagueTests\Stubs\AuthCodeEntity;
 use LeagueTests\Stubs\ClientEntity;
 use LeagueTests\Stubs\CryptTraitStub;
+use LeagueTests\Stubs\EventDispatcherStub;
 use LeagueTests\Stubs\RefreshTokenEntity;
 use LeagueTests\Stubs\ScopeEntity;
 use LeagueTests\Stubs\StubResponseType;
 use LeagueTests\Stubs\UserEntity;
 use LogicException;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 use function json_encode;
 use function str_repeat;
@@ -602,6 +604,24 @@ class AuthCodeGrantTest extends TestCase
 
     public function testRespondToAccessTokenRequest(): void
     {
+        $eventDispatch = new EventDispatcherStub();
+        $eventDispatch->subscribeTo(
+            RequestEvent::ACCESS_TOKEN_ISSUED,
+            function ($event) use (&$accessTokenEventEmitted): void {
+                self::assertInstanceOf(RequestAccessTokenEvent::class, $event);
+
+                $accessTokenEventEmitted = true;
+            }
+        );
+        $eventDispatch->subscribeTo(
+            RequestEvent::REFRESH_TOKEN_ISSUED,
+            function ($event) use (&$refreshTokenEventEmitted): void {
+                self::assertInstanceOf(RequestRefreshTokenEvent::class, $event);
+
+                $refreshTokenEventEmitted = true;
+            }
+        );
+
         $client = new ClientEntity();
 
         $client->setIdentifier('foo');
@@ -643,23 +663,8 @@ class AuthCodeGrantTest extends TestCase
         $accessTokenEventEmitted = false;
         $refreshTokenEventEmitted = false;
 
-        $grant->getListenerRegistry()->subscribeTo(
-            RequestEvent::ACCESS_TOKEN_ISSUED,
-            function ($event) use (&$accessTokenEventEmitted): void {
-                self::assertInstanceOf(RequestAccessTokenEvent::class, $event);
+        $grant->setEventDispatcher($eventDispatch);
 
-                $accessTokenEventEmitted = true;
-            }
-        );
-
-        $grant->getListenerRegistry()->subscribeTo(
-            RequestEvent::REFRESH_TOKEN_ISSUED,
-            function ($event) use (&$refreshTokenEventEmitted): void {
-                self::assertInstanceOf(RequestRefreshTokenEvent::class, $event);
-
-                $refreshTokenEventEmitted = true;
-            }
-        );
 
         $request = new ServerRequest(
             [],

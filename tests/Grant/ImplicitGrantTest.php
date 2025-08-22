@@ -14,13 +14,14 @@ use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
-use League\OAuth2\Server\RequestAccessTokenEvent;
-use League\OAuth2\Server\RequestEvent;
+use League\OAuth2\Server\EventEmitting\RequestAccessTokenEvent;
+use League\OAuth2\Server\EventEmitting\RequestEvent;
 use League\OAuth2\Server\RequestTypes\AuthorizationRequest;
 use League\OAuth2\Server\ResponseTypes\RedirectResponse;
 use LeagueTests\Stubs\AccessTokenEntity;
 use LeagueTests\Stubs\ClientEntity;
 use LeagueTests\Stubs\CryptTraitStub;
+use LeagueTests\Stubs\EventDispatcherStub;
 use LeagueTests\Stubs\ScopeEntity;
 use LeagueTests\Stubs\StubResponseType;
 use LeagueTests\Stubs\UserEntity;
@@ -248,6 +249,16 @@ class ImplicitGrantTest extends TestCase
 
     public function testCompleteAuthorizationRequest(): void
     {
+        $eventDispatcher = new EventDispatcherStub();
+        $eventDispatcher->subscribeTo(
+            RequestEvent::ACCESS_TOKEN_ISSUED,
+            function ($event) use (&$accessTokenEventEmitted): void {
+                self::assertInstanceOf(RequestAccessTokenEvent::class, $event);
+
+                $accessTokenEventEmitted = true;
+            }
+        );
+
         $client = new ClientEntity();
         $client->setIdentifier('identifier');
         $client->setRedirectUri('https://foo/bar');
@@ -273,17 +284,9 @@ class ImplicitGrantTest extends TestCase
         $grant->setPrivateKey(new CryptKey('file://' . __DIR__ . '/../Stubs/private.key'));
         $grant->setAccessTokenRepository($accessTokenRepositoryMock);
         $grant->setScopeRepository($scopeRepositoryMock);
+        $grant->setEventDispatcher($eventDispatcher);
 
         $accessTokenEventEmitted = false;
-
-        $grant->getListenerRegistry()->subscribeTo(
-            RequestEvent::ACCESS_TOKEN_ISSUED,
-            function ($event) use (&$accessTokenEventEmitted): void {
-                self::assertInstanceOf(RequestAccessTokenEvent::class, $event);
-
-                $accessTokenEventEmitted = true;
-            }
-        );
 
         self::assertInstanceOf(RedirectResponse::class, $grant->completeAuthorizationRequest($authRequest));
 

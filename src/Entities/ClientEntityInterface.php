@@ -44,5 +44,5 @@ interface ClientEntityInterface
      *
      * TODO: To be added in a future major release.
      */
-    // public function supportsGrantType(string $grantType): bool;
+    public function supportsGrantType(string $grantType): bool;
 }

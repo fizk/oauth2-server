@@ -10,7 +10,7 @@
 
 declare(strict_types=1);
 
-namespace League\OAuth2\Server;
+namespace League\OAuth2\Server\EventEmitting;
 
 use League\OAuth2\Server\EventEmitting\AbstractEvent;
 use Psr\Http\Message\ServerRequestInterface;
